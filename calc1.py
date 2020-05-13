@@ -112,12 +112,11 @@ class Interpreter(object):
         """
         # set current token to the first token taken from the input
         self.current_token = self.get_next_token()
-
         # we expect the current token to be an integer
         left = self.current_token
         self.eat(INTEGER)
 
-        # we expect the current token to be either a '+' or '-'
+        # we expect the current token to be either a '+', '-', '*', or '/'
         op = self.current_token
         if op.type == PLUS:
             self.eat(PLUS)
@@ -147,6 +146,30 @@ class Interpreter(object):
             result = left.value / right.value
         else:
             result = left.value - right.value
+
+        while self.current_token.type != EOF:
+            op = self.current_token
+            if op.type == PLUS:
+                self.eat(PLUS)
+            elif op.type == DIVIDE:
+                self.eat(DIVIDE)
+            elif op.type == MULTIPLY:
+                self.eat(MULTIPLY)
+            else:
+                self.eat(MINUS)
+
+            right = self.current_token
+            self.eat(INTEGER)
+
+            if op.type == PLUS:
+                result += right.value
+            elif op.type == MULTIPLY:
+                result *= right.value
+            elif op.type == DIVIDE:
+                result /= right.value
+            else:
+                result -= right.value
+
         return result
 
 
