@@ -19,11 +19,13 @@ class Interpreter:
     def __init__(self, text):
         self.text = text
         self.pos = 0
+        self.currentCharacter = self.text[self.pos]
         self.currentToken = None
 
     def eat(self, tokenType):
-        if self.currentToken.type == tokenType:
+        if self.currentToken.tokenType == tokenType:
             self.advance()
+            self.currentToken = self.get_next_token()
         else:
             self.error()
 
@@ -31,35 +33,78 @@ class Interpreter:
         raise Exception("Invalid Syntax")
 
     def advance(self):
-        if self.text[self.pos] == len(self.text):
-            return Token(None, EOF)
-        else:
+        if self.pos != len(self.text) - 1:
             self.pos += 1
-            self.currentToken = self.text[self.pos]
+            self.currentCharacter = self.text[self.pos]
+        else:
+            self.currentCharacter = None
 
     def clear_white_space(self):
-        while self.currentToken.isspace():
+        while self.currentCharacter is not None and self.currentCharacter.isspace():
             self.advance()
 
     def get_full_integer(self):
         currentInteger = ''
-        while self.currentToken.value.isdigit():
-            currentInteger += self.currentToken
+        while self.currentCharacter is not None and self.currentCharacter.isdigit():
+            currentInteger += self.currentCharacter
             self.advance()
-        self.currentToken = Token(int(currentInteger), INTEGER)
+        return int(currentInteger)
+
+    def get_next_token(self):
+        self.clear_white_space()
+
+        if self.currentCharacter is None:
+            return Token(None, EOF)
+
+        if self.currentCharacter.isdigit():
+            return Token(self.get_full_integer(), INTEGER)
+
+        elif self.currentCharacter == '+':
+            return Token('+', ADD)
+
+        elif self.currentCharacter == '-':
+            return Token('-', SUBTRACT)
+
+        elif self.currentCharacter == '*':
+            return Token('*', MULTIPLY)
+
+        elif self.currentCharacter == '/':
+            return Token('/', DIVIDE)
+
+        else:
+            self.error()
 
     def parse(self):
-        self.currentToken = self.advance()
-
-        self.clear_white_space()
-
-        leftValue = self.currentToken.value
+        self.currentToken = self.get_next_token()
+        leftToken = self.currentToken
         self.eat(INTEGER)
 
-        self.clear_white_space()
+        operand = self.currentToken
+        if operand.tokenType == ADD:
+            self.eat(ADD)
+        elif operand.tokenType == SUBTRACT:
+            self.eat(SUBTRACT)
+        elif operand.tokenType == MULTIPLY:
+            self.eat(MULTIPLY)
+        elif operand.tokenType == DIVIDE:
+            self.eat(DIVIDE)
+        else:
+            self.error()
 
-        if self.currentToken == '-':
+        rightToken = self.currentToken
+        self.eat(INTEGER)
 
-        self.eat()
+        if operand.tokenType == ADD:
+            return leftToken.value + rightToken.value
+        elif operand.tokenType == SUBTRACT:
+            return leftToken.value - rightToken.value
+        elif operand.tokenType == MULTIPLY:
+            return leftToken.value * rightToken.value
+        elif operand.tokenType == DIVIDE:
+            return leftToken.value / rightToken.value
 
-        rightValue = self.currentToken.value
+
+if __name__ == "__main__":
+    while True:
+        interpreter = Interpreter(input(">>"))
+        print(interpreter.parse())
