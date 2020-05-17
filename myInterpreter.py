@@ -72,7 +72,7 @@ class Interpreter:
         result = self.currentToken.value
         self.eat(INTEGER)
 
-        while self.currentToken.tokenType in [ADD, MULTIPLY, DIVIDE, SUBTRACT]:
+        while self.currentToken.tokenType != EOF:
             operator = self.currentToken
             self.advance()
             self.eat(self.currentToken.tokenType)
