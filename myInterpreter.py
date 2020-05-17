@@ -94,5 +94,8 @@ class Interpreter:
 
 if __name__ == "__main__":
     while True:
-        interpreter = Interpreter(input(">>"))
+        text = input(">>")
+        if text is "":
+            continue
+        interpreter = Interpreter(text)
         print(interpreter.parse())
