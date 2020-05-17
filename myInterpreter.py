@@ -24,7 +24,6 @@ class Interpreter:
 
     def eat(self, tokenType):
         if self.currentToken.tokenType == tokenType:
-            self.advance()
             self.currentToken = self.get_next_token()
         else:
             self.error()
@@ -33,11 +32,11 @@ class Interpreter:
         raise Exception("Invalid Syntax")
 
     def advance(self):
-        if self.pos != len(self.text) - 1:
-            self.pos += 1
-            self.currentCharacter = self.text[self.pos]
-        else:
+        self.pos += 1
+        if self.pos > len(self.text) - 1:
             self.currentCharacter = None
+        else:
+            self.currentCharacter = self.text[self.pos]
 
     def clear_white_space(self):
         while self.currentCharacter is not None and self.currentCharacter.isspace():
@@ -55,22 +54,16 @@ class Interpreter:
 
         if self.currentCharacter is None:
             return Token(None, EOF)
-
         if self.currentCharacter.isdigit():
             return Token(self.get_full_integer(), INTEGER)
-
         elif self.currentCharacter == '+':
             return Token('+', ADD)
-
         elif self.currentCharacter == '-':
             return Token('-', SUBTRACT)
-
         elif self.currentCharacter == '*':
             return Token('*', MULTIPLY)
-
         elif self.currentCharacter == '/':
             return Token('/', DIVIDE)
-
         else:
             self.error()
 
@@ -79,29 +72,43 @@ class Interpreter:
         leftToken = self.currentToken
         self.eat(INTEGER)
 
-        operand = self.currentToken
-        if operand.tokenType == ADD:
-            self.eat(ADD)
-        elif operand.tokenType == SUBTRACT:
-            self.eat(SUBTRACT)
-        elif operand.tokenType == MULTIPLY:
-            self.eat(MULTIPLY)
-        elif operand.tokenType == DIVIDE:
-            self.eat(DIVIDE)
-        else:
-            self.error()
+        operator = self.currentToken
+        self.advance()
+        self.eat(operator.tokenType)
 
         rightToken = self.currentToken
         self.eat(INTEGER)
 
-        if operand.tokenType == ADD:
-            return leftToken.value + rightToken.value
-        elif operand.tokenType == SUBTRACT:
-            return leftToken.value - rightToken.value
-        elif operand.tokenType == MULTIPLY:
-            return leftToken.value * rightToken.value
-        elif operand.tokenType == DIVIDE:
-            return leftToken.value / rightToken.value
+        if operator.tokenType == ADD:
+            result = leftToken.value + rightToken.value
+        elif operator.tokenType == SUBTRACT:
+            result = leftToken.value - rightToken.value
+        elif operator.tokenType == MULTIPLY:
+            result = leftToken.value * rightToken.value
+        else:
+            result = leftToken.value / rightToken.value
+
+        if self.currentToken.tokenType == INTEGER:
+            self.error()
+
+        while self.currentToken.tokenType in [ADD, MULTIPLY, DIVIDE, SUBTRACT]:
+            operator = self.currentToken
+            self.advance()
+            self.eat(self.currentToken.tokenType)
+
+            nextToken = self.currentToken
+            self.eat(INTEGER)
+
+            if operator.tokenType == ADD:
+                result += nextToken.value
+            elif operator.tokenType == SUBTRACT:
+                result -= nextToken.value
+            elif operator.tokenType == MULTIPLY:
+                result *= nextToken.value
+            elif operator.tokenType == DIVIDE:
+                result /= nextToken.value
+
+        return result
 
 
 if __name__ == "__main__":
