@@ -69,27 +69,8 @@ class Interpreter:
 
     def parse(self):
         self.currentToken = self.get_next_token()
-        leftToken = self.currentToken
+        result = self.currentToken.value
         self.eat(INTEGER)
-
-        operator = self.currentToken
-        self.advance()
-        self.eat(operator.tokenType)
-
-        rightToken = self.currentToken
-        self.eat(INTEGER)
-
-        if operator.tokenType == ADD:
-            result = leftToken.value + rightToken.value
-        elif operator.tokenType == SUBTRACT:
-            result = leftToken.value - rightToken.value
-        elif operator.tokenType == MULTIPLY:
-            result = leftToken.value * rightToken.value
-        else:
-            result = leftToken.value / rightToken.value
-
-        if self.currentToken.tokenType == INTEGER:
-            self.error()
 
         while self.currentToken.tokenType in [ADD, MULTIPLY, DIVIDE, SUBTRACT]:
             operator = self.currentToken
