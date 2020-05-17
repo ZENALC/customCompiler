@@ -15,18 +15,12 @@ class Token:
         return self.__str__()
 
 
-class Interpreter:
+class Lexer:
     def __init__(self, text):
         self.text = text
         self.pos = 0
         self.currentCharacter = self.text[self.pos]
         self.currentToken = None
-
-    def eat(self, tokenType):
-        if self.currentToken.tokenType == tokenType:
-            self.currentToken = self.get_next_token()
-        else:
-            self.error()
 
     def error(self):
         raise Exception("Invalid Syntax")
@@ -67,27 +61,49 @@ class Interpreter:
         else:
             self.error()
 
-    def parse(self):
-        self.currentToken = self.get_next_token()
+
+class Interpreter:
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.currentToken = self.lexer.get_next_token()
+
+    def eat(self, tokenType):
+        if self.currentToken.tokenType == tokenType:
+            self.currentToken = self.lexer.get_next_token()
+        else:
+            self.lexer.error()
+
+    def term(self):
         result = self.currentToken.value
         self.eat(INTEGER)
 
-        while self.currentToken.tokenType != EOF:
+        while self.currentToken.tokenType in (MULTIPLY, DIVIDE):
             operator = self.currentToken
-            self.advance()
+            self.lexer.advance()
             self.eat(self.currentToken.tokenType)
 
             nextToken = self.currentToken
             self.eat(INTEGER)
 
-            if operator.tokenType == ADD:
-                result += nextToken.value
-            elif operator.tokenType == SUBTRACT:
-                result -= nextToken.value
-            elif operator.tokenType == MULTIPLY:
+            if operator.tokenType == MULTIPLY:
                 result *= nextToken.value
             elif operator.tokenType == DIVIDE:
                 result /= nextToken.value
+
+        return result
+
+    def parse(self):
+        result = self.term()
+
+        while self.currentToken.tokenType != EOF:
+            operator = self.currentToken
+            self.lexer.advance()
+            self.eat(self.currentToken.tokenType)
+
+            if operator.tokenType == ADD:
+                result += self.term()
+            elif operator.tokenType == SUBTRACT:
+                result -= self.term()
 
         return result
 
@@ -97,5 +113,6 @@ if __name__ == "__main__":
         text = input(">>")
         if text is "":
             continue
-        interpreter = Interpreter(text)
+        lexer = Lexer(text)
+        interpreter = Interpreter(lexer)
         print(interpreter.parse())
