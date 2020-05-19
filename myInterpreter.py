@@ -59,6 +59,10 @@ class Lexer:
             return Token('*', MULTIPLY)
         elif self.currentCharacter == '/':
             return Token('/', DIVIDE)
+        elif self.currentCharacter == '(':
+            return Token('(', LPAREN)
+        elif self.currentCharacter == ')':
+            return Token(')', RPAREN)
         else:
             self.error()
 
@@ -74,9 +78,21 @@ class Interpreter:
         else:
             self.lexer.error()
 
+    def factor(self):
+        token = self.currentToken
+        if token.tokenType == INTEGER:
+            self.eat(INTEGER)
+            return token.value
+        elif token.tokenType == LPAREN:
+            self.lexer.advance()
+            self.eat(LPAREN)
+            result = self.parse()
+            self.lexer.advance()
+            self.eat(RPAREN)
+            return result
+
     def term(self):
-        result = self.currentToken.value
-        self.eat(INTEGER)
+        result = self.factor()
 
         while self.currentToken.tokenType in (MULTIPLY, DIVIDE):
             operator = self.currentToken
@@ -96,7 +112,7 @@ class Interpreter:
     def parse(self):
         result = self.term()
 
-        while self.currentToken.tokenType != EOF:
+        while self.currentToken.tokenType in (ADD, SUBTRACT):
             operator = self.currentToken
             self.lexer.advance()
             self.eat(self.currentToken.tokenType)
