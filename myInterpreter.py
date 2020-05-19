@@ -1,7 +1,7 @@
 __author__ = "Mihir Shrestha"
 
 ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, EOF, LPAREN, RPAREN = 'ADD', 'SUBTRACT', 'MULTIPLY', 'DIVIDE', 'INTEGER', \
-                                                                'EOF', 'LPAREN', 'RPAREN '
+                                                                'EOF', 'LPAREN', 'RPAREN'
 
 
 class Token:
@@ -10,7 +10,7 @@ class Token:
         self.tokenType = tokenType
 
     def __str__(self):
-        return f"Token({self.value}, {self.tokenType})"
+        return f"Token('{self.value}', {self.tokenType})"
 
     def __repr__(self):
         return self.__str__()
@@ -42,6 +42,8 @@ class Lexer:
         while self.currentCharacter is not None and self.currentCharacter.isdigit():
             currentInteger += self.currentCharacter
             self.advance()
+        self.pos -= 1
+        self.currentCharacter = self.text[self.pos]
         return int(currentInteger)
 
     def get_next_token(self):
@@ -74,6 +76,7 @@ class Interpreter:
 
     def eat(self, tokenType):
         if self.currentToken.tokenType == tokenType:
+            self.lexer.advance()
             self.currentToken = self.lexer.get_next_token()
         else:
             self.lexer.error()
@@ -84,10 +87,8 @@ class Interpreter:
             self.eat(INTEGER)
             return token.value
         elif token.tokenType == LPAREN:
-            self.lexer.advance()
             self.eat(LPAREN)
             result = self.parse()
-            self.lexer.advance()
             self.eat(RPAREN)
             return result
 
@@ -96,31 +97,28 @@ class Interpreter:
 
         while self.currentToken.tokenType in (MULTIPLY, DIVIDE):
             operator = self.currentToken
-            self.lexer.advance()
             self.eat(self.currentToken.tokenType)
 
-            nextToken = self.currentToken
-            self.eat(INTEGER)
-
             if operator.tokenType == MULTIPLY:
-                result *= nextToken.value
+                result *= self.factor()
             elif operator.tokenType == DIVIDE:
-                result /= nextToken.value
+                result /= self.factor()
 
         return result
 
     def parse(self):
         result = self.term()
 
-        while self.currentToken.tokenType in (ADD, SUBTRACT):
+        while self.currentToken.tokenType in (ADD, SUBTRACT, INTEGER):
             operator = self.currentToken
-            self.lexer.advance()
             self.eat(self.currentToken.tokenType)
 
             if operator.tokenType == ADD:
                 result += self.term()
             elif operator.tokenType == SUBTRACT:
                 result -= self.term()
+            elif operator.tokenType == INTEGER:
+                self.lexer.error()
 
         return result
 
