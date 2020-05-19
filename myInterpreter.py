@@ -1,6 +1,7 @@
 __author__ = "Mihir Shrestha"
 
-ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, EOF = 'ADD', 'SUBTRACT', 'MULTIPLY', 'DIVIDE', 'INTEGER', 'EOF'
+ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, EOF, LPAREN, RPAREN = 'ADD', 'SUBTRACT', 'MULTIPLY', 'DIVIDE', 'INTEGER', \
+                                                                'EOF', 'LPAREN', 'RPAREN '
 
 
 class Token:
