@@ -1,7 +1,7 @@
 __author__ = "Mihir Shrestha"
 
-ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, EOF, LPAREN, RPAREN = 'ADD', 'SUBTRACT', 'MULTIPLY', 'DIVIDE', 'INTEGER', \
-                                                                'EOF', 'LPAREN', 'RPAREN'
+ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, POWER, EOF, LPAREN, RPAREN = 'ADD', 'SUBTRACT', 'MULTIPLY', 'DIVIDE', \
+                                                                       'INTEGER', 'POWER', 'EOF', 'LPAREN', 'RPAREN'
 
 
 class Token:
@@ -61,6 +61,8 @@ class Lexer:
             return Token('*', MULTIPLY)
         elif self.currentCharacter == '/':
             return Token('/', DIVIDE)
+        elif self.currentCharacter == '^':
+            return Token('^', POWER)
         elif self.currentCharacter == '(':
             return Token('(', LPAREN)
         elif self.currentCharacter == ')':
@@ -85,6 +87,11 @@ class Interpreter:
         token = self.currentToken
         if token.tokenType == INTEGER:
             self.eat(INTEGER)
+            if self.currentToken.tokenType == POWER:
+                self.eat(POWER)
+                otherToken = self.currentToken
+                self.eat(INTEGER)
+                return token.value ** otherToken.value
             return token.value
         elif token.tokenType == LPAREN:
             self.eat(LPAREN)
